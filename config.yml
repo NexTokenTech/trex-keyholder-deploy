@@ -1,0 +1,18 @@
+name: "trex-key-holding-service"
+version: "0.1.0"
+about: Key-holder node using Intel SGX TEE for TREX network
+authors: "NexToken Technology LLC <team@trex.ink>"
+
+# AppSettings can be defined as a list and are **not** ascii case sensitive
+settings:
+  - ColoredHelp
+  - SubcommandRequired
+
+# Config Settings for key-holder
+node_ip: ws://127.0.0.1
+node_port: 9944
+keyholder_ip: 0.0.0.0
+mu_ra_external_address:
+mu_ra_port: 3443
+enable_metrics_server: true
+metrics_server_port: 8787

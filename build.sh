@@ -1,9 +1,20 @@
 #!/bin/bash
-# shell 所在目录
+# Receive external parameters
+for parm in "$@"
+do
+   key=`echo ${parm%%=*}`
+   value=`echo ${parm#*=}`
+   if [ $key == "--node_host" ];then
+      export NODE_HOST=$value
+   fi
+done
+echo $NODE_HOST
+
+# The directory where the shell is located
 SHELL_FOLDER=$(cd "$(dirname "$0")";pwd)
 echo $SHELL_FOLDER
 
-# sdk 安装
+# sdk install
 sudo apt-get install build-essential ocaml ocamlbuild automake autoconf libtool wget python-is-python3 libssl-dev git cmake perl
 git clone https://github.com/intel/linux-sgx.git
 cd $SHELL_FOLDER/linux-sgx
@@ -14,7 +25,7 @@ sdk_installer=`find $SHELL_FOLDER/linux-sgx/linux/installer/bin/ -name "sgx_linu
 cd /opt/intel
 sudo  echo yes | $sdk_installer
 
-# psw 安装
+# psw install
 cd $SHELL_FOLDER/linux-sgx
 sudo apt-get install libssl-dev libcurl4-openssl-dev protobuf-compiler libprotobuf-dev debhelper cmake reprepro unzip pkgconf libboost-dev libboost-system-dev protobuf-c-compiler libprotobuf-c-dev lsb-release
 make psw
@@ -42,6 +53,9 @@ sudo $psw_installer
 # git clone trex-keyholder
 cd $SHELL_FOLDER
 git clone https://github.com/NexTokenTech/trex-keyholder.git
+git fetch
+git checkout deployment
+git status
 cd $SHELL_FOLDER/trex-keyholder
 ls
 
@@ -50,11 +64,28 @@ apt-get update && apt-get install -y pkg-config clang libclang-dev diffutils gcc
 curl -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
 source "$HOME/.cargo/env"
 rustup show
-
+rustup default nightly
 
 # make trex-keyholder
 source /opt/intel/sgxsdk/environment
 SGX_MODE=HW make
 cd $SHELL_FOLDER/trex-keyholder/bin
+
+# generate tee account in enclave
+./cli -c $SHELL_FOLDER/trex-keyholder/service/src/config.yml -s $SHELL_FOLDER/trex-keyholder/service/src/seed.yml signing-pub-key
 ls
-# TODO:// 生成tee-account并拿到publickey 方便转账需要修改cli
+
+# use subxt send funds to tee-account from wellknown account Alice.
+cd $SHELL_FOLDER
+ls
+git clone https://github.com/NexTokenTech/trex-account-funds.git
+cd $SHELL_FOLDER/trex-account-funds
+ls
+cargo install subxt-cli
+subxt metadata -f bytes > metadata.scale
+cargo build --release
+./target/release/trex-account-funds -n $NODE_HOST -t $SHELL_FOLDER/trex-keyholder/bin/tee_account_id.txt
+
+# start key holder service
+cd $SHELL_FOLDER/trex-keyholder/bin
+./trex-keyholder -c $SHELL_FOLDER/trex-keyholder/service/src/config.yml
