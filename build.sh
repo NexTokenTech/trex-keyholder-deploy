@@ -20,7 +20,7 @@ sudo apt-get install -y libssl-dev libcurl4-openssl-dev protobuf-compiler libpro
 git clone https://github.com/intel/linux-sgx.git
 cd $SHELL_FOLDER/linux-sgx
 make preparation
-cp external/toolset/ubuntu20.04/* /usr/local/bin
+cp $SHELL_FOLDER/linux-sgx/external/toolset/ubuntu20.04/* /usr/local/bin
 which ar as ld objcopy objdump ranlib
 make sdk
 make sdk_install_pkg
