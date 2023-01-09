@@ -15,19 +15,26 @@ SHELL_FOLDER=$(cd "$(dirname "$0")";pwd)
 echo $SHELL_FOLDER
 
 # sdk install
-sudo apt-get install build-essential ocaml ocamlbuild automake autoconf libtool wget python-is-python3 libssl-dev git cmake perl
+sudo apt-get install -y build-essential ocaml ocamlbuild automake autoconf libtool wget python-is-python3 libssl-dev git cmake perl
+sudo apt-get install -y libssl-dev libcurl4-openssl-dev protobuf-compiler libprotobuf-dev debhelper cmake reprepro unzip pkgconf libboost-dev libboost-system-dev libboost-thread-dev p>
 git clone https://github.com/intel/linux-sgx.git
 cd $SHELL_FOLDER/linux-sgx
+make preparation
+cp external/toolset/ubuntu20.04/* /usr/local/bin
+which ar as ld objcopy objdump ranlib
 make sdk
 make sdk_install_pkg
 ls
 sdk_installer=`find $SHELL_FOLDER/linux-sgx/linux/installer/bin/ -name "sgx_linux_x64_sdk_*.bin"`;
+echo $sdk_installer
+cd /opt
+mkdir intel
 cd /opt/intel
 sudo  echo yes | $sdk_installer
 
 # psw install
 cd $SHELL_FOLDER/linux-sgx
-sudo apt-get install libssl-dev libcurl4-openssl-dev protobuf-compiler libprotobuf-dev debhelper cmake reprepro unzip pkgconf libboost-dev libboost-system-dev protobuf-c-compiler libprotobuf-c-dev lsb-release
+# sudo apt-get install -y libssl-dev libcurl4-openssl-dev protobuf-compiler libprotobuf-dev debhelper cmake reprepro unzip pkgconf libboost-dev libboost-system-dev protobuf-c-compiler l>
 make psw
 make deb_psw_pkg
 
@@ -53,6 +60,7 @@ sudo $psw_installer
 # git clone trex-keyholder
 cd $SHELL_FOLDER
 git clone https://github.com/NexTokenTech/trex-keyholder.git
+cd $SHELL_FOLDER/trex-keyholder
 git fetch
 git checkout deployment
 git status
@@ -65,6 +73,9 @@ curl -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
 source "$HOME/.cargo/env"
 rustup show
 rustup default nightly
+
+apt-get install -y llvm
+apt-get install -y clang
 
 # make trex-keyholder
 source /opt/intel/sgxsdk/environment
@@ -85,6 +96,9 @@ cargo install subxt-cli
 subxt metadata -f bytes > metadata.scale
 cargo build --release
 ./target/release/trex-account-funds -n $NODE_HOST -t $SHELL_FOLDER/trex-keyholder/bin/tee_account_id.txt
+
+# sleep 5s for waiting funds
+sleep 5
 
 # start key holder service
 cd $SHELL_FOLDER/trex-keyholder/bin
