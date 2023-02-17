@@ -62,7 +62,6 @@ cd $SHELL_FOLDER
 git clone https://github.com/NexTokenTech/trex-keyholder.git
 cd $SHELL_FOLDER/trex-keyholder
 git fetch
-git checkout deployment
 git status
 cd $SHELL_FOLDER/trex-keyholder
 ls
